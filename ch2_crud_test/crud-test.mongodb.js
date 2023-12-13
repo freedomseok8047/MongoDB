@@ -102,8 +102,62 @@ db.collection.insertMany([
   { item: "postcard", qty: 45, tags: [2,4,6,8,10] }
   ]);
 
-// $elemMatch
+// $(생략)시 default로 $all
+// $all x > 10
+// $all x < 15
 db.collection.find({tags: {$gt: 10, $lt: 15}})
-db.collection.find({tags: {$elemMatch: {$gt: 10, $lt: 5}}})
+// $elemMatch
+db.collection.find({tags: {$elemMatch: {$gt: 10, $lt: 15}}})
+
+// 공공데이터에서 조건에 맞게 조회
+db.by_month.find({$and: [
+  {month_data: {$elemMatch: {month: "01월", heavy_injury: 0}}},
+  {month_data: {$elemMatch: {month: "02월", death_toll: 0}}}
+  ]})
+
+// 순서가 중요함
+db.inventory.find({tags: ["red", "blank"]})
+db.inventory.find({tags: ["blank", "red"]})
+// $all을 쓰면 "red", "blank" 순서와 상관 없이 해당 요소가 있는지만 확인
+db.inventory.find({tags: {$all: ["red", "blank"]}})
+
+// 배열 lenth가 3인 문서
+db.collection.find({tags: {$size: 5}}) 
+db.inventory.find({tags: {$size: 5}})
+
+
+// {item: "book", tags: ["red", "blank"]}
+// 잘못됨. tags의 첫번째 인자[0]가 아니라 tags 배열의 0이란 원소를 출력하라는 의미
+db.collection.find({}, {"tags.10": 1})
+
+// tags 배열의 [0], [1]을 출력하라 (앞에서 부터 2개를 출력하라)
+db.collection.find({}, {tags: {$slice: 2}})
+
+// tags 배열의 [2:3] 을 출력하라 -> 인덱스 2번부터 3개 가져와라
+db.collection.find({}, {tags: {$slice: [2, 3]}})
+
+// tags 배열의 [2:2] 을 출력하라 -> 인덱스 2번부터 2개 가져와라
+db.collection.find({}, {tags: {$slice: [2, 2]}})
+
+// test #m 사용
+db.inventory.find({ item : /^p/i});
+
+// #특정 조건에 부합하는 필드만 출력하라
+// 확인 필요.
+db.inventory.find(
+  {},
+  { tags: { $elemMatch: { $regex: /^b/ } }, _id: 0, item: 0, qty: 0 });
+
+db.inventory.find(
+  {},
+  { tags: { $elemMatch: { $regex: /^b/ } }});
+
+db.inventory.find(
+  {},
+  { tags: { $elemMatch: { $regex: /^b/ } },item: 1, qty: 1 });
+
+// #특정 조건에 부합하는 첫번째 데이터만 출력하라
+db.collection.find({tags: "red"}, {"tags.$":true})
+
 
 
